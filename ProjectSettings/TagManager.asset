@@ -7,11 +7,12 @@ TagManager:
   - Go
   - Item
   - Enemy
+  - Obstacle
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
   - 
