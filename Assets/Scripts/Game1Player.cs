@@ -30,6 +30,9 @@ public class Game1PlayerScript : MonoBehaviour
     public LayerMask groundLayer;
     public Rigidbody rb;
 
+
+    private Animator animator;
+
     // 是否正在地面上
     private bool isGrounded;
 
@@ -41,8 +44,9 @@ public class Game1PlayerScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Application.targetFrameRate = 120;
+        Application.targetFrameRate = 60;
         rb = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
         coinText.text = "金币：" + coinCount;
     }
 
@@ -51,17 +55,24 @@ public class Game1PlayerScript : MonoBehaviour
     {
         if (isGameOver)
         {
+            //animator.SetBool("isMoving", false);
             return;
         }
 
 
         moveInput.x = Input.GetAxis("Horizontal");
-        moveInput.z = Input.GetAxis("Vertical");
+        
+        //moveInput.z = Input.GetAxis("Vertical");
+        moveInput.z = 1f; // 自动向前，速度由 speedMove 控制
+
+        bool isMoving = moveInput.x != 0f || moveInput.z != 0f;
+        animator.SetBool("isMoving", isMoving);
+
         go.transform.Translate(speedMove * moveInput * Time.deltaTime);
 
         float mouseX = Input.GetAxis("Mouse X");
         rotateInput.y = mouseX;
-        go.transform.Rotate(speedRotate * rotateInput);
+        //go.transform.Rotate(speedRotate * rotateInput);
 
         if (groundCheck != null)
         {
@@ -82,7 +93,8 @@ public class Game1PlayerScript : MonoBehaviour
             jumpRequested = true;
         }
 
-
+        bool isJumping = !isGrounded;//|| jumpRequested || rb.velocity.y > 0.1f;
+        animator.SetBool("isJumping", isJumping);
 
 
 
