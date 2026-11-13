@@ -10,7 +10,7 @@ public class Game1PlayerScript : MonoBehaviour
     public GameObject go;
     public Vector3 moveInput;//WASD输入
     public Vector3 rotateInput;//鼠标选转输入
-    public float speedMove = 10f;
+    public float speedMove = 0.1f;
     public float speedRotate = 3f;
     public AudioSource ad;//控制音响
     public AudioClip aclip;//音源
@@ -31,6 +31,16 @@ public class Game1PlayerScript : MonoBehaviour
     public Rigidbody rb;
 
 
+    [Header("三跑道移动")]
+    [Min(0.1f)] public float laneWidth = 2f;
+    [Min(0.01f)] public float laneChangeDuration = 0.35f;
+
+    // -1、0、1 分别表示左、中、右跑道，起始位置作为中间跑道。
+    private int targetLane = 0;
+    private float centerLaneX;
+    private float laneChangeStartX;
+    private float laneChangeElapsed;
+
     private Animator animator;
 
     // 是否正在地面上
@@ -47,6 +57,9 @@ public class Game1PlayerScript : MonoBehaviour
         Application.targetFrameRate = 60;
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
+        centerLaneX = go.transform.position.x;
+        laneChangeStartX = centerLaneX;
+        laneChangeElapsed = laneChangeDuration;
         coinText.text = "金币：" + coinCount;
     }
 
@@ -60,15 +73,35 @@ public class Game1PlayerScript : MonoBehaviour
         }
 
 
-        moveInput.x = Input.GetAxis("Horizontal");
+        // 原来的连续左右移动保留作学习对照。
+        //moveInput.x = Input.GetAxis("Horizontal");
+        moveInput.x = 0f;
+
+        bool leftPressed = Input.GetKeyDown(KeyCode.A);
+        bool rightPressed = Input.GetKeyDown(KeyCode.D);
+        if (leftPressed != rightPressed)
+        {
+            ChangeLane(leftPressed ? -1 : 1);
+        }
         
         //moveInput.z = Input.GetAxis("Vertical");
-        moveInput.z = 1f; // 自动向前，速度由 speedMove 控制
+        moveInput.z = 0.5f; // 自动向前，速度由 speedMove 控制
 
         bool isMoving = moveInput.x != 0f || moveInput.z != 0f;
         animator.SetBool("isMoving", isMoving);
 
         go.transform.Translate(speedMove * moveInput * Time.deltaTime);
+
+        float switchDuration = Mathf.Max(laneChangeDuration, 0.01f);
+        laneChangeElapsed = Mathf.Min(laneChangeElapsed + Time.deltaTime, switchDuration);
+        float laneProgress = laneChangeElapsed / switchDuration;
+        Vector3 lanePosition = go.transform.position;
+        lanePosition.x = Mathf.Lerp(laneChangeStartX, centerLaneX + targetLane * laneWidth, laneProgress);
+        go.transform.position = lanePosition;
+
+        // 保留原来的手动动画计时作对照；改用 Animator 自身计时，确保返回 run 的过渡完成。
+        //animator.SetFloat("laneChangeProgress", laneProgress);
+        animator.SetBool("isChangingLane", laneProgress < 1f);
 
         float mouseX = Input.GetAxis("Mouse X");
         rotateInput.y = mouseX;
@@ -98,6 +131,27 @@ public class Game1PlayerScript : MonoBehaviour
 
 
 
+    }
+
+    private void ChangeLane(int direction)
+    {
+        int nextLane = targetLane + direction;
+        if (nextLane < -1 || nextLane > 1)
+        {
+            return;
+        }
+
+        targetLane = nextLane;
+        laneChangeStartX = go.transform.position.x;
+        laneChangeElapsed = 0f;
+
+        //animator.SetFloat("laneChangeProgress", 0f);
+        // 左右状态使用各自的动作时长作为基础速度，再按换道用时调整播放速度。
+        animator.SetFloat("laneChangeSpeed", 1f / Mathf.Max(laneChangeDuration, 0.01f));
+        animator.SetBool("isChangingLane", true);
+        animator.ResetTrigger("changeLeft");
+        animator.ResetTrigger("changeRight");
+        animator.SetTrigger(direction < 0 ? "changeLeft" : "changeRight");
     }
 
     private void FixedUpdate()
