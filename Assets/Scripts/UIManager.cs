@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
     [Header("UI 组件引用")]
     public Text coinText;          // 显示金币数量的文字
     public GameObject gameOverUI;  // “游戏结束”文字物体
+    
 
     private void Awake()
     {
