@@ -9,6 +9,7 @@ public class SceneLoadManager : MonoBehaviour
     public GameObject loadingPanel; // 加载面板
     public Slider progressBar;      // 进度条滑块 (取值范围 0 ~ 1)
     public Text progressText;       // 显示百分比的文字
+    
 
     // 供“开始游戏”按钮点击调用的方法
     public void OnStartGameClicked()
@@ -50,4 +51,23 @@ public class SceneLoadManager : MonoBehaviour
         // 进度条走满 100% 后，允许正式进入新场景
         operation.allowSceneActivation = true;
     }
+
+    // 供“退出游戏”按钮点击调用的方法
+    public void OnQuitGameClicked()
+    {
+        Debug.Log("正在退出游戏...");
+
+        // 退出前确保所有本地设置和存档都已写入硬盘
+        PlayerPrefs.Save();
+
+#if UNITY_EDITOR
+        // 如果当前是在 Unity 编辑器里点播放测试，直接停止运行
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        // 如果是打包出来的正式程序（如 .exe / .app），彻底关闭游戏窗口
+        Application.Quit();
+#endif
+    }
+
+
 }

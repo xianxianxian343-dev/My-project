@@ -42,8 +42,8 @@ public class PlayerControlScript : MonoBehaviour
 
     void Update()
     {
-        // 问一下总管：游戏结束了吗？结束了就不跑了
-        if (GameManager.Instance.isGameOver)
+        // 游戏结束 或 处于暂停状态时，不接收玩家的 A/D 换道和空格跳跃按键
+        if (GameManager.Instance.isGameOver || GameManager.Instance.isPaused)
         {
             return;
         }
@@ -120,7 +120,7 @@ public class PlayerControlScript : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (GameManager.Instance.isGameOver)
+        if (GameManager.Instance.isGameOver || GameManager.Instance.isPaused)
         {
             return;
         }
@@ -149,7 +149,7 @@ public class PlayerControlScript : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             Destroy(other.gameObject);
-            GameManager.Instance.AddCoin();
+            GameManager.Instance.AddCoin(other.transform.position);
         }
     }
 }

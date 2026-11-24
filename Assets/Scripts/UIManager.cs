@@ -8,8 +8,8 @@ public class UIManager : MonoBehaviour
 
     [Header("UI 组件引用")]
     public Text coinText;          // 显示金币数量的文字
-    public GameObject gameOverUI;  // “游戏结束”文字物体
-    
+    public GameObject gameOverUI;
+    public GameObject pausePanel;
 
     private void Awake()
     {
@@ -33,4 +33,14 @@ public class UIManager : MonoBehaviour
             gameOverUI.SetActive(true);
         }
     }
+
+    // 【新增】统一控制暂停面板的打开（true）与关闭（false）
+    public void SetPauseUI(bool show)
+    {
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(show);
+        }
+    }
+
 }
